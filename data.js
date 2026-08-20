@@ -305,6 +305,20 @@ const ST = (function () {
     'sar-villa-smeralda':'photo-1582719508461-905c673771fd','sar-hotel-costa':'photo-1445019980597-93fa8acb246c','sar-apt-olbia':'photo-1560448204-e02f11c3d0e2'
   };
   DESTINATIONS.forEach(d => d.accommodation.forEach(a => { a.img = ACCOM_IMAGES[a.id] || null; }));
+
+  /* Destination scenery photography (verified Unsplash coast/beach shots),
+     shown on the alternative-destination cards. Gradient remains the fallback. */
+  const DEST_IMAGES = {
+    'crete':'photo-1533105079780-92b9be482077',        // Aegean blue sea & white village
+    'mallorca':'photo-1519046904884-53103b34b206',     // palm-fringed turquoise beach
+    'menorca':'photo-1509233725247-49e657c54213',      // calm turquoise cove
+    'algarve':'photo-1507525428034-b723cf961d3e',      // golden beach at sunset
+    'costa-blanca':'photo-1519046904884-53103b34b206', // turquoise beach
+    'cyprus':'photo-1507525428034-b723cf961d3e',        // golden beach
+    'costa-del-sol':'photo-1509233725247-49e657c54213', // turquoise cove
+    'sardinia':'photo-1548574505-5e239809ee19'          // turquoise archipelago bay
+  };
+  DESTINATIONS.forEach(d => { d.heroImg = DEST_IMAGES[d.id] || null; });
   function stayImgUrl(slug, w, h) {
     return 'https://images.unsplash.com/' + slug + '?w=' + (w || 800) + '&h=' + (h || 600) + '&fit=crop&q=75&auto=format';
   }

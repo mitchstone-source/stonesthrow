@@ -247,6 +247,12 @@ const App = (function () {
     const url = ST.stayImgUrl(stay.img, w || 800, h || 600);
     return `<img class="phimg" src="${url}" alt="${escapeHtml(stay.name)}" loading="lazy" onerror="this.remove()">`;
   }
+  // Destination scenery photo, same gradient-fallback behaviour.
+  function destPhoto(dest, w, h) {
+    if (!dest || !dest.heroImg) return '';
+    const url = ST.stayImgUrl(dest.heroImg, w || 800, h || 600);
+    return `<img class="phimg" src="${url}" alt="${escapeHtml(dest.name)}, ${escapeHtml(dest.country)}" loading="lazy" onerror="this.remove()">`;
+  }
 
   /* =======================================================================
      WIZARD
@@ -831,9 +837,9 @@ const App = (function () {
   function altReason(o, base) {
     const reasons = [];
     const saving = base.total - o.total;
-    if (saving > 150) reasons.push(`could save around ${fmt.money(saving)}`);
+    if (saving > 150) reasons.push(`savings of around ${fmt.money(saving)}`);
     else if (saving < -150) reasons.push(`a step up in quality for about ${fmt.money(-saving)} more`);
-    if (o.scores.weather > base.scores.weather + 4) reasons.push('the weather is likely to be better for your dates');
+    if (o.scores.weather > base.scores.weather + 4) reasons.push('better weather for your dates');
     if (o.flight.durationHours < base.flight.durationHours - 0.5) reasons.push(`a shorter flight (${fmt.hours(o.flight.durationHours)})`);
     if (o.scores.style >= base.scores.style) reasons.push('a similar style of holiday');
     if (o.stay.type === 'Villa' && (state.search.accomTypes.includes('villa'))) reasons.push('great villa availability');
@@ -1158,7 +1164,7 @@ const App = (function () {
     body.innerHTML = `<p class="muted">You're not limited to one place. Based on what you told us, here are destinations that might suit you even better — and why.</p>
       <div class="grid grid-2" style="margin-top:1rem">
         ${r.alts.map(o => `<div class="card">
-          <div class="ph" style="height:140px;${destGradientStyle(o.dest)};position:relative">${sunWavesSVG()}
+          <div class="ph" style="height:140px;${destGradientStyle(o.dest)};position:relative;overflow:hidden">${sunWavesSVG()}${destPhoto(o.dest, 560, 300)}
             <span class="badge-label">Match ${o.overall}/100</span></div>
           <div class="card-pad">
             <div class="between"><h3 style="margin:0">${o.dest.name}, ${o.dest.country}</h3><strong>${fmt.money(o.total)}</strong></div>
