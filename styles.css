@@ -144,6 +144,13 @@ img { max-width: 100%; }
 /* ---- Hero ---------------------------------------------------------------- */
 .hero { position: relative; overflow: hidden; }
 .hero-bg { position: absolute; inset: 0; z-index: 0; }
+/* crossfading hero photo slideshow */
+.hslide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.6s ease-in-out; }
+.hslide.active { opacity: 1; }
+/* darkening overlay keeps the white hero text legible over any photo */
+.hero-overlay { position: absolute; inset: 0; background:
+  linear-gradient(90deg, rgba(8,26,32,.66) 0%, rgba(8,26,32,.42) 45%, rgba(8,26,32,.22) 100%),
+  linear-gradient(0deg, rgba(8,26,32,.35), transparent 45%); }
 .hero-inner { position: relative; z-index: 1; padding: clamp(3rem, 8vw, 6rem) 0 clamp(2rem,5vw,3.5rem); }
 .hero h1 { color: #fff; max-width: 15ch; text-shadow: 0 2px 24px rgba(0,0,0,.28); }
 .hero .sub { color: #f3f7f7; font-size: clamp(1.05rem, 2.2vw, 1.3rem); max-width: 46ch; text-shadow: 0 1px 12px rgba(0,0,0,.3); }

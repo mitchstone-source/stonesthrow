@@ -86,7 +86,10 @@ const App = (function () {
     const featured = DESTINATIONS.slice(0, 8);
     app().innerHTML = `
       <section class="hero">
-        <div class="hero-bg" id="heroBg"></div>
+        <div class="hero-bg" id="heroBg">
+          ${HERO_IMAGES.map((slug, idx) => `<div class="hslide ${idx===0?'active':''}" style="background-image:url('${ST.stayImgUrl(slug, 1600, 900)}')"></div>`).join('')}
+          <div class="hero-overlay"></div>
+        </div>
         <div class="wrap hero-inner">
           <div class="hero-badges">
             <span class="hero-badge">★ Independent & impartial</span>
@@ -193,8 +196,9 @@ const App = (function () {
         </div>
       </section>
     `;
-    // hero background gradient (stylized imagery)
+    // hero background: gradient base (fallback) + crossfading photo slideshow
     el('heroBg').style.background = heroGradient();
+    startHeroSlideshow();
     // destination tiles
     const tiles = el('destTiles');
     featured.forEach(d => tiles.appendChild(destTile(d)));
@@ -212,6 +216,29 @@ const App = (function () {
     return `radial-gradient(120% 90% at 75% 15%, rgba(255,255,255,.25), transparent 60%),
             linear-gradient(160deg, #0d5c6b 0%, #12768a 40%, #1f8ea3 65%, #e8a635 120%)`;
   }
+  // Rotating hero photography (verified Unsplash coast/beach scenics).
+  const HERO_IMAGES = [
+    'photo-1507525428034-b723cf961d3e', // golden beach at sunset
+    'photo-1533105079780-92b9be482077', // Aegean blue sea & white village
+    'photo-1519046904884-53103b34b206', // palm-fringed turquoise beach
+    'photo-1548574505-5e239809ee19',    // turquoise archipelago bay
+    'photo-1509233725247-49e657c54213'  // calm turquoise cove
+  ];
+  let heroTimer = null;
+  function startHeroSlideshow() {
+    if (heroTimer) { clearInterval(heroTimer); heroTimer = null; }
+    const slides = $$('#heroBg .hslide');
+    if (slides.length < 2) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let i = 0;
+    heroTimer = setInterval(() => {
+      // stop if the hero has been replaced by another view
+      if (!document.body.contains(slides[0])) { clearInterval(heroTimer); heroTimer = null; return; }
+      slides[i].classList.remove('active');
+      i = (i + 1) % slides.length;
+      slides[i].classList.add('active');
+    }, 5000);
+  }
   function destGradientStyle(dest) {
     const [a, b] = dest.theme;
     return `background:
@@ -226,7 +253,7 @@ const App = (function () {
     div.setAttribute('tabindex', '0');
     div.setAttribute('aria-label', `Plan a holiday to ${dest.name}, ${dest.country}`);
     div.innerHTML = `
-      <div class="ph" style="${destGradientStyle(dest)}">${sunWavesSVG()}</div>
+      <div class="ph" style="${destGradientStyle(dest)}">${sunWavesSVG()}${destPhoto(dest, 560, 420)}</div>
       <div class="cap"><h3>${dest.name}</h3><div class="m">${dest.country} · ${dest.region}</div></div>`;
     const open = () => startWizardFromQuery(dest.name);
     div.onclick = open;
