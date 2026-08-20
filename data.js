@@ -287,6 +287,29 @@ const ST = (function () {
   DESTINATIONS.forEach(d => { d.lat = d.airport.lat; d.lon = d.airport.lon; });
 
   /* ---------------------------------------------------------------------------
+     Accommodation photography.
+     Each property is mapped to a verified Unsplash photo (chosen to match its
+     type/character). Served from the Unsplash CDN at page load; the UI falls
+     back to the destination gradient if an image fails to load.
+     >>> INTEGRATION POINT: when live, replace these with the provider's own
+         property imagery returned in the accommodation feed.
+  --------------------------------------------------------------------------- */
+  const ACCOM_IMAGES = {
+    'crete-villa-olive':'photo-1613490493576-7fde63acd811','crete-hotel-marbella':'photo-1540541338287-41700207dee6','crete-apt-blue':'photo-1502672260266-1c1ef2d93688','crete-boutique':'photo-1571003123894-1f0594d2b5d9',
+    'mallorca-villa-sol':'photo-1512917774080-9991f1c4c750','mallorca-hotel-bahia':'photo-1551882547-ff40c63fe5fa','mallorca-apt-port':'photo-1560448204-e02f11c3d0e2','mallorca-fincaluxe':'photo-1600585154340-be6161a56a0c',
+    'menorca-villa-cala':'photo-1582719508461-905c673771fd','menorca-hotel-sur':'photo-1566073771259-6a8506099945','menorca-apt-ciut':'photo-1493809842364-78817add7ffb',
+    'algarve-villa-dourada':'photo-1613490493576-7fde63acd811','algarve-resort-marim':'photo-1571003123894-1f0594d2b5d9','algarve-apt-old':'photo-1502672260266-1c1ef2d93688',
+    'cb-hotel-levante':'photo-1551882547-ff40c63fe5fa','cb-apt-marina':'photo-1560448204-e02f11c3d0e2','cb-villa-quiet':'photo-1512917774080-9991f1c4c750',
+    'cyp-resort-aphrodite':'photo-1540541338287-41700207dee6','cyp-villa-golden':'photo-1613490493576-7fde63acd811','cyp-apt-harbour':'photo-1493809842364-78817add7ffb',
+    'cds-hotel-sol':'photo-1551882547-ff40c63fe5fa','cds-apt-old':'photo-1502672260266-1c1ef2d93688','cds-villa-mijas':'photo-1600585154340-be6161a56a0c',
+    'sar-villa-smeralda':'photo-1582719508461-905c673771fd','sar-hotel-costa':'photo-1445019980597-93fa8acb246c','sar-apt-olbia':'photo-1560448204-e02f11c3d0e2'
+  };
+  DESTINATIONS.forEach(d => d.accommodation.forEach(a => { a.img = ACCOM_IMAGES[a.id] || null; }));
+  function stayImgUrl(slug, w, h) {
+    return 'https://images.unsplash.com/' + slug + '?w=' + (w || 800) + '&h=' + (h || 600) + '&fit=crop&q=75&auto=format';
+  }
+
+  /* ---------------------------------------------------------------------------
      Seasonal price multiplier + day-of-week effect (for flexible-date search).
   --------------------------------------------------------------------------- */
   function seasonalMultiplier(month) {
@@ -506,6 +529,7 @@ const ST = (function () {
       parking: AirportParkingProvider,
       transfer: TransferProvider
     },
+    stayImgUrl,
     fmt: { time: fmtTime, hours: fmtHours, money }
   };
 })();

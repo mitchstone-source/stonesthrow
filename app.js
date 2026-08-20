@@ -240,6 +240,13 @@ const App = (function () {
       <path d="M0,258 C70,242 140,275 210,258 C290,240 350,275 400,258 L400,300 L0,300 Z" fill="rgba(255,255,255,.22)"/>
     </svg>`;
   }
+  // Real accommodation photo layered over the gradient fallback. If the CDN image
+  // fails to load, it removes itself and the gradient/waves remain visible.
+  function stayPhoto(stay, w, h) {
+    if (!stay || !stay.img) return '';
+    const url = ST.stayImgUrl(stay.img, w || 800, h || 600);
+    return `<img class="phimg" src="${url}" alt="${escapeHtml(stay.name)}" loading="lazy" onerror="this.remove()">`;
+  }
 
   /* =======================================================================
      WIZARD
@@ -1082,7 +1089,7 @@ const App = (function () {
     const labels = (o.labels||[]).slice(0,1).map(l=>`<span class="badge-label">${l}</span>`).join('');
     return `<div class="card" style="position:relative">
       ${labels}
-      <div class="ph" style="height:150px;${destGradientStyle(o.dest)};position:relative">${sunWavesSVG()}</div>
+      <div class="ph" style="height:150px;${destGradientStyle(o.dest)};position:relative;overflow:hidden">${sunWavesSVG()}${stayPhoto(o.stay, 500, 300)}</div>
       <div class="card-pad">
         <div class="between"><h3 style="margin:0">${o.dest.name}</h3><div class="score"><div class="dial" style="--v:${o.overall}"><span>${o.overall}</span></div></div></div>
         <p class="small muted" style="margin:.2rem 0 .6rem">${o.stay.name} · ${o.stay.type} · ${o.weather.tempHigh}°C</p>
@@ -1182,31 +1189,70 @@ const App = (function () {
     const s = state.search, dest = r.leader.dest;
     let flights = [];
     r.origins.forEach(o => providers.flights.search({ origin: o, destination: dest, date: s.date, nights: s.nights, travellers: { adults: s.adults, childAges: s.childAges, infants: s.infants } })
-      .forEach(f => { f.convenience = flightConvenience(f, o, dest); flights.push(f); }));
+      .forEach(f => {
+        f.convenience = flightConvenience(f, o, dest);
+        // price of one extra 23kg hold bag, return — scales gently with distance
+        f.bagPrice = Math.round(34 + milesBetween(o, dest.airport) * 0.018);
+        flights.push(f);
+      }));
+    const byId = {};                 // fid -> flight
+    const bags = {};                 // fid -> extra hold bags chosen (persists across sorts)
+    flights.forEach(f => { byId[f.id] = f; bags[f.id] = bags[f.id] || 0; });
+
     body.innerHTML = `
       <div class="between"><p class="muted">Flights to <strong>${dest.name}</strong> for your group of ${r.leader.partySize}. ${priceNote()}</p>
         <select id="flightSort">${[['price','Cheapest'],['value','Best value'],['duration','Shortest'],['time','Best times']].map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select></div>
+      <p class="small muted" style="margin:.2rem 0 0">Cabin bags are included as shown. Add 23kg hold luggage to any flight below — the price updates instantly.</p>
       <div id="flightList" class="stack" style="margin-top:1rem"></div>`;
     const list = el('flightList');
+
+    const bagTotal = f => f.groupPrice + bags[f.id] * f.bagPrice;
+
     const draw = (sortKey) => {
       let sorted = flights.slice();
-      if (sortKey==='price') sorted.sort((a,b)=>a.groupPrice-b.groupPrice);
-      if (sortKey==='value') sorted.sort((a,b)=>b.convenience/b.groupPrice - a.convenience/a.groupPrice);
+      if (sortKey==='price') sorted.sort((a,b)=>bagTotal(a)-bagTotal(b));
+      if (sortKey==='value') sorted.sort((a,b)=>b.convenience/bagTotal(b) - a.convenience/bagTotal(a));
       if (sortKey==='duration') sorted.sort((a,b)=>a.durationHours-b.durationHours);
       if (sortKey==='time') sorted.sort((a,b)=>parseInt(a.depTime)-parseInt(b.depTime));
-      list.innerHTML = sorted.slice(0,8).map(f => `<div class="card card-pad flight">
-        <div class="legs">
-          <div><div class="time">${f.depTime}</div><div class="small muted">${f.from.code}</div></div>
-          <div class="path"><div>${f.direct?'Direct':f.stops+' stop'}</div><div class="line"></div><div>${fmt.hours(f.durationHours)}</div></div>
-          <div><div class="time">${f.arrTime}</div><div class="small muted">${f.to.code}</div></div>
-          <div style="margin-left:1rem"><strong>${f.airline}</strong><br><span class="small muted">🧳 ${f.baggage}</span><br>
-            <span class="pill pill-demo">Convenience ${f.convenience}/100</span></div>
+      list.innerHTML = sorted.slice(0,8).map(f => `<div class="card card-pad" data-fid="${f.id}">
+        <div class="flight">
+          <div class="legs">
+            <div><div class="time">${f.depTime}</div><div class="small muted">${f.from.code}</div></div>
+            <div class="path"><div>${f.direct?'Direct':f.stops+' stop'}</div><div class="line"></div><div>${fmt.hours(f.durationHours)}</div></div>
+            <div><div class="time">${f.arrTime}</div><div class="small muted">${f.to.code}</div></div>
+            <div style="margin-left:1rem"><strong>${f.airline}</strong><br>
+              <span class="pill pill-demo">Convenience ${f.convenience}/100</span></div>
+          </div>
+          <div style="text-align:right"><strong style="font-size:1.3rem" data-total>${fmt.money(bagTotal(f))}</strong><br>
+            <span class="small muted" data-bagnote>${bags[f.id]?('incl. '+bags[f.id]+' bag'+(bags[f.id]>1?'s':'')+' +'+fmt.money(bags[f.id]*f.bagPrice)):fmt.money(f.perAdult)+' / adult'}</span><br>
+            <button class="btn btn-brand btn-sm" data-provider="View flight">View flight →</button></div>
         </div>
-        <div style="text-align:right"><strong style="font-size:1.3rem">${fmt.money(f.groupPrice)}</strong><br>
-          <span class="small muted">${fmt.money(f.perAdult)} / adult</span><br>
-          <button class="btn btn-brand btn-sm" data-provider="View flight">View flight →</button></div>
+        <div class="lug">
+          <span class="small muted">🧳 Included: ${f.baggage}</span>
+          <div class="lugctl">
+            <span class="small">Add 23kg hold bags</span>
+            <div class="stepper stepper-sm">
+              <button type="button" data-bag="-1" aria-label="Fewer hold bags">−</button>
+              <span data-bags aria-live="polite">${bags[f.id]}</span>
+              <button type="button" data-bag="1" aria-label="Add a hold bag">+</button>
+            </div>
+            <span class="small muted">${fmt.money(f.bagPrice)} per bag, return</span>
+          </div>
+        </div>
       </div>`).join('');
       wireProviderButtons(list);
+      // wire luggage steppers
+      $$('[data-fid]', list).forEach(card => {
+        const f = byId[card.dataset.fid];
+        card.querySelectorAll('[data-bag]').forEach(btn => btn.onclick = () => {
+          bags[f.id] = clamp(bags[f.id] + (+btn.dataset.bag), 0, 6);
+          card.querySelector('[data-bags]').textContent = bags[f.id];
+          card.querySelector('[data-total]').textContent = fmt.money(bagTotal(f));
+          card.querySelector('[data-bagnote]').textContent = bags[f.id]
+            ? 'incl. ' + bags[f.id] + ' bag' + (bags[f.id]>1?'s':'') + ' +' + fmt.money(bags[f.id]*f.bagPrice)
+            : fmt.money(f.perAdult) + ' / adult';
+        });
+      });
     };
     draw('price');
     el('flightSort').onchange = e => draw(e.target.value);
@@ -1232,7 +1278,7 @@ const App = (function () {
         if (st===bestPool) lbls.push('Best pool');
         if (st.type==='Villa') lbls.push('Villa pick');
         return `<div class="card acc-card">
-          <div class="ph" style="${destGradientStyle(dest)}">${sunWavesSVG()}${lbls[0]?`<span class="badge-label">${lbls[0]}</span>`:''}</div>
+          <div class="ph" style="${destGradientStyle(dest)};overflow:hidden">${sunWavesSVG()}${stayPhoto(st, 520, 400)}${lbls[0]?`<span class="badge-label">${lbls[0]}</span>`:''}</div>
           <div class="body">
             <div class="between"><div><h3 style="margin:0">${st.name}</h3>
               <span class="small muted">${st.type}${st.stars?' · '+st.stars+'★':''} · ⭐ ${st.guestRating} guest rating · sleeps ${st.sleeps}</span></div>
@@ -1552,7 +1598,7 @@ const App = (function () {
     const o = state.results.options.find(x => x.id === id) || state.results.top.find(x=>x.id===id);
     if (!o) return;
     openModal(`${o.dest.name} — ${o.stay.name}`, `
-      <div class="ph" style="height:150px;border-radius:12px;${destGradientStyle(o.dest)};position:relative;margin-bottom:1rem">${sunWavesSVG()}</div>
+      <div class="ph" style="height:170px;border-radius:12px;${destGradientStyle(o.dest)};position:relative;margin-bottom:1rem;overflow:hidden">${sunWavesSVG()}${stayPhoto(o.stay, 720, 400)}</div>
       <div class="between"><div><strong style="font-size:1.6rem">${fmt.money(o.total)}</strong> <span class="muted">total · ${fmt.money(o.total/o.partySize)} pp</span></div>
         <div class="score"><div class="dial" style="--v:${o.overall}"><span>${o.overall}</span></div><span class="small muted">value</span></div></div>
       <table class="dates"><tbody>
