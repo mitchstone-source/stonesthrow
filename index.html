@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en-GB" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="StonesThrow — an independent, AI-powered travel adviser that searches, compares and finds the best-value holiday for your family, couple or group. Demo mode with realistic sample data.">
+  <meta name="theme-color" content="#12768a">
+  <title>StonesThrow — The perfect holiday, a stone's throw away</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2312768a'/%3E%3Ccircle cx='68' cy='34' r='14' fill='%23e8a635'/%3E%3Cpath d='M0 72 C22 62 40 82 60 72 C80 62 92 82 100 72 L100 100 L0 100 Z' fill='%23ffffff' opacity='0.85'/%3E%3C/svg%3E">
+</head>
+<body>
+  <a href="#app" class="sr-only">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="#" aria-label="StonesThrow home">
+        <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#12768a"/><circle cx="68" cy="34" r="14" fill="#e8a635"/><path d="M0 72 C22 62 40 82 60 72 C80 62 92 82 100 72 L100 100 L0 100 Z" fill="#ffffff" opacity="0.9"/></svg>
+        StonesThrow
+      </a>
+      <nav class="nav" aria-label="Main">
+        <div class="navlinks" id="navLinks">
+          <a href="#plan">Plan a holiday</a>
+          <a href="#saved">Saved <span id="savedCount" style="color:var(--accent);font-weight:800"></span></a>
+          <a href="#admin">Admin</a>
+        </div>
+        <button class="icon-btn" id="textToggle" title="Increase text size" aria-label="Increase text size">A+</button>
+        <button class="icon-btn" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">◑</button>
+        <button class="icon-btn nav-toggle" id="navToggle" aria-label="Menu">☰</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="app"><!-- rendered by app.js --></main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="cols">
+        <div>
+          <div class="brand" style="color:#fff">
+            <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#12768a"/><circle cx="68" cy="34" r="14" fill="#e8a635"/><path d="M0 72 C22 62 40 82 60 72 C80 62 92 82 100 72 L100 100 L0 100 Z" fill="#ffffff" opacity="0.9"/></svg>
+            StonesThrow
+          </div>
+          <p class="small" style="max-width:36ch;margin-top:.8rem">The perfect holiday, a stone's throw away. Independent, impartial and built around you.</p>
+          <p class="small" style="opacity:.7">Demonstration app · realistic sample data · not a live booking service.</p>
+        </div>
+        <div><h4>Plan</h4><p class="small"><a href="#plan">Start planning</a><br><a href="#plan">Traveller details</a><br><a href="#saved">Saved holidays</a></p></div>
+        <div><h4>Company</h4><p class="small">About<br>How it works<br>Accessibility<br>Careers</p></div>
+        <div><h4>Legal</h4><p class="small">Privacy (UK GDPR)<br>Cookies<br>Terms<br><a href="#admin">Provider config</a></p></div>
+      </div>
+      <p class="small" style="opacity:.6;margin-top:2rem">© <span id="yr"></span> StonesThrow (demo). All prices shown are indicative sample figures and are not live or bookable. No personal or payment data is collected in demo mode.</p>
+    </div>
+  </footer>
+
+  <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
